@@ -60,6 +60,25 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+    - `FAQ.md`: Frequently Asked Questions
+    - `LS8-cheatsheet.md`: Non-authoritative reference for ALU operations, PC mutators, and other functionality
+    - `LS8-spec.md`: Defines LS-8 specification
+    - `/asm`
+        - `asm.py`: Produces `.ls8` "binary" from LS-8 assembler source
+        - `buildall`: Builds all `.asm` files in the `/asm` directory
+        - `call.asm`: Call functions in LS-8
+        - `interrupts.asm`: Handle LS-8 interrupts
+        - `keyboard.asm`: Tests keyboard and echos to console
+        - `mult.asm`: Multiplies two numbers
+        - `print8.asm`: Prints the number 8
+        - `printstr.asm`: Prints a string
+        - `sctest.asm`: Test for sprint challenge
+        - `stack.asm`: Tests LS-8 stack
+        - `stackoverflow.asm`: Overflows the stack
+    - `/ls8`
+        - `/examples`: Does the same as their `/asm` counterparts
+        - `cpy.py`: Creates the emulated CPU with its functionality
+        - `ls8.py`: Loads and runs the emulated CPU
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
