@@ -7,6 +7,14 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.ram = [0b0] * 0b100000000 # [0] * 256 in binary, just for practice
+        self.reg = [0b0] * 0b1000 # [0] * 8 in binary, just for practice
+        self.pc = 0
+    
+    def ram_read(self, mar):
+        pass
+    
+    def ram_write(self, mar, mdr):
         pass
 
     def load(self):
