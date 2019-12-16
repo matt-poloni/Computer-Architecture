@@ -9,7 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0b0] * 0b100000000 # [0] * 256 in binary, just for practice
         self.reg = [0b0] * 0b1000 # [0] * 8 in binary, just for practice
-        self.pc = 0
+        self.pc = 0b0
     
     def ram_read(self, mar):
         return self.ram[mar]
@@ -70,4 +70,11 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while (ir := self.ram_read(self.pc)) != 0b00000001:
+            num_operands = bin(ir)[:2]
+            is_alu_op = bool(ir[2])
+            sets_pc = bool(ir[3])
+            instruction_id = ir[4:]
+            operand_a = self.ram_read(self.pc + 0b01) # Add 1 to IR
+            operand_b = self.ram_read(self.pc + 0b10) # Add 2 to IR
+            self.pc += num_operands
