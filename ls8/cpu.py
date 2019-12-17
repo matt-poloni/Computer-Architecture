@@ -70,11 +70,18 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        while (ir := self.ram_read(self.pc)) != 0b00000001:
-            num_operands = bin(ir)[:2]
-            is_alu_op = bool(ir[2])
-            sets_pc = bool(ir[3])
-            instruction_id = ir[4:]
-            operand_a = self.ram_read(self.pc + 0b01) # Add 1 to IR
-            operand_b = self.ram_read(self.pc + 0b10) # Add 2 to IR
-            self.pc += num_operands
+        def LDI(a, b): self.reg[a] = b
+        def PRN(a, b): print(self.reg[a])
+        opcodes = {
+          0b00000000: 'NOP',
+          0b00000001: 'HLT',
+          0b10000010: LDI,
+          0b01000111: PRN
+        }
+        while (op_fn := opcodes[(ir := self.ram_read(self.pc))]) != 'HLT':
+            num_operands = ir >> 6 # Grab two highest bits
+            operand_a = self.ram_read(self.pc + 0b1)
+            operand_b = self.ram_read(self.pc + 0b10)
+            if op_fn != 'NOP':
+                op_fn(operand_a, operand_b)
+            self.pc += (num_operands + 1)
