@@ -86,4 +86,5 @@ class CPU:
                     self.alu(ir, operand_a, operand_b)
                 else:
                     op_fn(operand_a, operand_b)
-            self.pc += (num_args + 1)
+            if ~((ir & 0b00010000) >> 4):
+                self.pc += (num_args + 1)
