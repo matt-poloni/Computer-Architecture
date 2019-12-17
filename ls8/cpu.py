@@ -35,10 +35,16 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        def ADD(a, b): self.reg[a] += self.reg[b]
+        def MUL(a, b): self.reg[a] *= self.reg[b]
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        opcodes = {
+          0b10100000: ADD,
+          0b10100010: MUL
+        }
+
+        if op in opcodes:
+            opcodes[op](reg_a, reg_b)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -71,13 +77,22 @@ class CPU:
           0b00000000: 'NOP',
           0b00000001: 'HLT',
           0b10000010: LDI,
-          0b01000111: PRN
+          0b01000111: PRN,
+          # Need to handle ALUs better
+          0b10100000: 'ADD',
+          0b10100010: 'MUL'
         }
 
         while (op_fn := opcodes[(ir := self.ram_read(self.pc))]) != 'HLT':
             num_operands = ir >> 6 # Grab 7th/8th bits
-            if num_operands > 0: operand_a = self.ram_read(self.pc + 0b1)
-            if num_operands > 1: operand_b = self.ram_read(self.pc + 0b10)
+            if num_operands > 0:
+                operand_a = self.ram_read(self.pc + 0b1)
+            if num_operands > 1:
+                operand_b = self.ram_read(self.pc + 0b10)
+            
             if op_fn != 'NOP':
-                op_fn(operand_a, operand_b)
+                if (ir & 0b00100000) >> 5:
+                    self.alu(ir, operand_a, operand_b)
+                else:
+                    op_fn(operand_a, operand_b)
             self.pc += (num_operands + 1)
