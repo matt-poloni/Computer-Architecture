@@ -7,7 +7,15 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0b0] * 0b100000000 # [0] * 256 in binary, just for practice
+        self.reg = [0b0] * 0b1000 # [0] * 8 in binary, just for practice
+        self.pc = 0b0
+    
+    def ram_read(self, mar):
+        return self.ram[mar]
+    
+    def ram_write(self, mar, mdr):
+        self.ram[mar] = mdr
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +70,18 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        def LDI(a, b): self.reg[a] = b
+        def PRN(a, b): print(self.reg[a])
+        opcodes = {
+          0b00000000: 'NOP',
+          0b00000001: 'HLT',
+          0b10000010: LDI,
+          0b01000111: PRN
+        }
+        while (op_fn := opcodes[(ir := self.ram_read(self.pc))]) != 'HLT':
+            num_operands = ir >> 6 # Grab two highest bits
+            operand_a = self.ram_read(self.pc + 0b1)
+            operand_b = self.ram_read(self.pc + 0b10)
+            if op_fn != 'NOP':
+                op_fn(operand_a, operand_b)
+            self.pc += (num_operands + 1)
