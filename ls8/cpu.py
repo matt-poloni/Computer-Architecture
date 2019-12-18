@@ -47,7 +47,7 @@ class CPU:
         if op in alu_opcodes:
             alu_opcodes[op](reg_a, reg_b)
         else:
-            raise Exception("Unsupported ALU operation")
+            raise Exception(f"{hex(op)} is not a supported ALU operation")
 
     def opcodes(self, op):
         def LDI(index, integer): self.reg[index] = integer
@@ -82,7 +82,7 @@ class CPU:
         elif (op & 0b00100000) >> 5:
             return lambda a, b: self.alu(op, a, b)
         else:
-            raise Exception(f"{bin(op)} is not a supported operation")
+            raise Exception(f"{hex(op)} is not a supported operation")
 
     def trace(self):
         """
