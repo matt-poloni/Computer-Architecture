@@ -9,18 +9,25 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 0x100 # 256 in hex
         self.reg = [0] * 0b1000 # 8 in binary
-        self.sp = 0b111 # 7 in binary
-        self.reg[self.sp] = 0xF4 # 244 in hex, last key pressed
+        sp = 0b111 # 7 in binary
+        self.reg[sp] = 0xF4 # 244 in hex
         self.pc = 0
 
-        def LDI(a, b): self.reg[a] = b
-        def PRN(a, b): print(self.reg[a])
-        def PUSH(a, b):
-            self.reg[self.sp] -= 1
-            self.ram_write(self.reg[self.sp], self.reg[a])
-        def POP(a, b):
-            self.reg[a] = self.ram_read(self.reg[self.sp])
-            self.reg[self.sp] += 1
+        def LDI(index, integer): self.reg[index] = integer
+        def PRN(index, b=None): print(self.reg[index])
+        def PUSH(index, b=None):
+            self.reg[sp] -= 1
+            self.ram[self.reg[sp]] = self.reg[index]
+        def POP(index, b=None):
+            self.reg[index] = self.ram[self.reg[sp]]
+            self.reg[sp] += 1
+        def CALL(index, b=None):
+            self.reg[sp] -= 1
+            self.ram[self.reg[sp]] = self.pc + 2
+            self.pc = self.reg[index]
+        def RET(a=None, b=None):
+            self.pc = self.ram[self.reg[sp]]
+            self.reg[sp] += 1
 
         self.opcodes = {
             0b00000000: 'NOP',
@@ -29,6 +36,8 @@ class CPU:
             0b01000111: PRN,
             0b01000101: PUSH,
             0b01000110: POP,
+            0b01010000: CALL,
+            0b00010001: RET,
             # ALU ops
             0b10100000: 'ADD',
             0b10100010: 'MUL'
@@ -93,10 +102,10 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        while (op_fn := self.opcodes[(ir := self.ram_read(self.pc))]) != 'HLT':
+        while (op_fn := self.opcodes[(ir := self.ram[self.pc])]) != 'HLT':
             num_args = ir >> 6 # Grab 7th/8th bits
-            operand_a = self.ram_read(self.pc + 1) if num_args > 0 else None
-            operand_b = self.ram_read(self.pc + 2) if num_args > 1 else None
+            operand_a = self.ram[self.pc + 1] if num_args > 0 else None
+            operand_b = self.ram[self.pc + 2] if num_args > 1 else None
             
             # Skip function call if no-op
             if op_fn != 'NOP':
@@ -105,6 +114,6 @@ class CPU:
                     self.alu(ir, operand_a, operand_b)
                 else:
                     op_fn(operand_a, operand_b)
-            # Check if op sets PC
-            if ~((ir & 0b00010000) >> 4):
+            # Check if op DOESN'T set PC
+            if ((ir & 0b00010000) >> 4) ^ 1: # XOR flips the bit
                 self.pc += (num_args + 1)
