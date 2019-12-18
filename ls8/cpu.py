@@ -115,5 +115,5 @@ class CPU:
                 else:
                     op_fn(operand_a, operand_b)
             # Check if op DOESN'T set PC
-            if ((ir & 0b00010000) >> 4) ^ 1: # XOR flips the bit
+            if ((ir & 0b00010000) >> 4) ^ 1: # XOR against 1 flips the bit
                 self.pc += (num_args + 1)
