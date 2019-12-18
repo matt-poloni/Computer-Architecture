@@ -7,22 +7,31 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0b0] * 0x100 # [0] * 256 in hex, just for practice
-        self.reg = [0b0] * 0b1000 # [0] * 8 in binary, just for practice
-        self.pc = 0b0
+        self.ram = [0] * 0x100 # 256 in hex
+        self.reg = [0] * 0b1000 # 8 in binary
+        self.sp = 0b111 # 7 in binary
+        self.reg[self.sp] = 0xF4 # 244 in hex, last key pressed
+        self.pc = 0
 
         def LDI(a, b): self.reg[a] = b
         def PRN(a, b): print(self.reg[a])
-        def ADD(a, b): self.reg[a] += self.reg[b]
-        def MUL(a, b): self.reg[a] *= self.reg[b]
+        def PUSH(a, b):
+            self.reg[self.sp] -= 1
+            self.ram_write(self.reg[self.sp], self.reg[a])
+        def POP(a, b):
+            self.reg[a] = self.ram_read(self.reg[self.sp])
+            self.reg[self.sp] += 1
 
         self.opcodes = {
             0b00000000: 'NOP',
             0b00000001: 'HLT',
             0b10000010: LDI,
             0b01000111: PRN,
-            0b10100000: ADD,
-            0b10100010: MUL
+            0b01000101: PUSH,
+            0b01000110: POP,
+            # ALU ops
+            0b10100000: 'ADD',
+            0b10100010: 'MUL'
         }
     
     def ram_read(self, mar):
@@ -49,8 +58,16 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        if op in self.opcodes:
-            self.opcodes[op](reg_a, reg_b)
+        def ADD(a, b): self.reg[a] += self.reg[b]
+        def MUL(a, b): self.reg[a] *= self.reg[b]
+
+        alu_opcodes = {
+            0b10100000: ADD,
+            0b10100010: MUL
+        }
+
+        if op in alu_opcodes:
+            alu_opcodes[op](reg_a, reg_b)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -81,10 +98,13 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1) if num_args > 0 else None
             operand_b = self.ram_read(self.pc + 2) if num_args > 1 else None
             
+            # Skip function call if no-op
             if op_fn != 'NOP':
+                # Check if it's an ALU op
                 if (ir & 0b00100000) >> 5:
                     self.alu(ir, operand_a, operand_b)
                 else:
                     op_fn(operand_a, operand_b)
+            # Check if op sets PC
             if ~((ir & 0b00010000) >> 4):
                 self.pc += (num_args + 1)
