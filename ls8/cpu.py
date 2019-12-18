@@ -40,8 +40,8 @@ class CPU:
         def MUL(a, b): self.reg[a] *= self.reg[b]
 
         alu_opcodes = {
-            0b0000: ADD,
-            0b0010: MUL
+            0b10100000: ADD,
+            0b10100010: MUL
         }
 
         if op in alu_opcodes:
@@ -80,7 +80,7 @@ class CPU:
         if op in ops: return ops[op]
         # If it's an ALU function, send it to the ALU
         elif (op & 0b00100000) >> 5:
-            return lambda a, b: self.alu(op & 0b1111, a, b)
+            return lambda a, b: self.alu(op, a, b)
         else:
             raise Exception(f"{bin(op)} is not a supported operation")
 
