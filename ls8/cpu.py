@@ -1,6 +1,6 @@
 """CPU functionality."""
-
 import sys
+from datetime import now
 
 class CPU:
     """Main CPU class."""
@@ -9,9 +9,40 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 0x100 # 256 in hex
         self.reg = [0] * 0b1000 # 8 in binary
-        self.sp = 0b111 # 7 in binary
-        self.reg[self.sp] = 0xF4 # 244 in hex
+        SP = 0b111 # 7 in binary
+        self.reg[SP] = 0xF4 # 244 in hex
+        IS = 0b110 # 6 in binary
+        IM = 0b101 # 5 in binary
         self.pc = 0
+
+        def LDI(index, integer): self.reg[index] = integer
+        def PRN(index, b): print(self.reg[index])
+        def PUSH(index, b):
+            self.reg[SP] -= 1
+            self.ram[self.reg[SP]] = self.reg[index]
+        def POP(index, b):
+            self.reg[index] = self.ram[self.reg[SP]]
+            self.reg[SP] += 1
+        def CALL(index, b):
+            self.reg[SP] -= 1
+            self.ram[self.reg[SP]] = self.pc + 2
+            self.pc = self.reg[index]
+        def RET(a, b):
+            self.pc = self.ram[self.reg[SP]]
+            self.reg[SP] += 1
+        def ST(a, b): self.ram[self.reg[a]] = self.reg[b]
+
+        self.ops = {
+            0b00000000: 'NOP',
+            0b00000001: 'HLT',
+            0b10000010: LDI,
+            0b01000111: PRN,
+            0b01000101: PUSH,
+            0b01000110: POP,
+            0b01010000: CALL,
+            0b00010001: RET,
+            0b10000100: ST
+        }
     
     def ram_read(self, mar):
         if mar > 255:
@@ -50,35 +81,8 @@ class CPU:
             raise Exception(f"{hex(op)} is not a supported ALU operation")
 
     def opcodes(self, op):
-        def LDI(index, integer): self.reg[index] = integer
-        def PRN(index, b): print(self.reg[index])
-        def PUSH(index, b):
-            self.reg[self.sp] -= 1
-            self.ram[self.reg[self.sp]] = self.reg[index]
-        def POP(index, b):
-            self.reg[index] = self.ram[self.reg[self.sp]]
-            self.reg[self.sp] += 1
-        def CALL(index, b):
-            self.reg[self.sp] -= 1
-            self.ram[self.reg[self.sp]] = self.pc + 2
-            self.pc = self.reg[index]
-        def RET(a, b):
-            self.pc = self.ram[self.reg[self.sp]]
-            self.reg[self.sp] += 1
-
-        ops = {
-            0b00000000: 'NOP',
-            0b00000001: 'HLT',
-            0b10000010: LDI,
-            0b01000111: PRN,
-            0b01000101: PUSH,
-            0b01000110: POP,
-            0b01010000: CALL,
-            0b00010001: RET,
-        }
-
-        if op in ops: return ops[op]
-        # If it's an ALU function, send it to the ALU
+        if op in self.ops: return self.ops[op]
+        # If it's supposed to be an ALU op, send it there
         elif (op & 0b00100000) >> 5:
             return lambda a, b: self.alu(op, a, b)
         else:
@@ -106,6 +110,8 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        time = now()
+        print(time)
         while (op_fn := self.opcodes(ir := self.ram[self.pc])) != 'HLT':
             num_args = ir >> 6 # Grab 7th/8th bits
             operand_a = self.ram[self.pc + 1] if num_args > 0 else None
