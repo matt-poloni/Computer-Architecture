@@ -21,7 +21,7 @@ class CPU:
         def PRN(a, b):
             print(self.reg[a])
         def PRA(a, b):
-            print(chr(self.reg[a]))
+            print(chr(self.reg[a]), end="")
         def PUSH(a, b):
             self.reg[SP] -= 1
             self.ram[self.reg[SP]] = self.reg[a]
@@ -37,6 +37,8 @@ class CPU:
             self.reg[SP] += 1
         def ST(a, b):
             self.ram[self.reg[a]] = self.reg[b]
+        def LD(a, b):
+            self.reg[a] = self.ram[self.reg[b]]
         def JMP(a, b):
             self.pc = self.reg[a]
         def JEQ(a, b):
@@ -60,6 +62,7 @@ class CPU:
             0b01010000: CALL,
             0b00010001: RET,
             0b10000100: ST,
+            0b10000011: LD,
             0b01010100: JMP,
             0b01010101: JEQ,
             0b01010110: JNE,
