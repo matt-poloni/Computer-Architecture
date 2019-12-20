@@ -21,7 +21,7 @@ class CPU:
         def PRN(a, b):
             print(self.reg[a])
         def PRA(a, b):
-            print(chr(self.reg[a]), end="")
+            print(chr(self.reg[a]))
         def PUSH(a, b):
             self.reg[SP] -= 1
             self.ram[self.reg[SP]] = self.reg[a]
@@ -93,6 +93,8 @@ class CPU:
             self.reg[a] += self.reg[b]
         def INC(a, b):
             self.reg[a] += 1
+        def DEC(a, b):
+            self.reg[a] -= 1
         def MUL(a, b):
             self.reg[a] *= self.reg[b]
         def CMP(a, b):
