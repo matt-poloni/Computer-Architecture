@@ -1,6 +1,6 @@
 """CPU functionality."""
 import sys
-from datetime import now
+from datetime import datetime
 
 class CPU:
     """Main CPU class."""
@@ -14,34 +14,56 @@ class CPU:
         IS = 0b110 # 6 in binary
         IM = 0b101 # 5 in binary
         self.pc = 0
+        self.fl = 0
 
-        def LDI(index, integer): self.reg[index] = integer
-        def PRN(index, b): print(self.reg[index])
-        def PUSH(index, b):
+        def LDI(a, b):
+            self.reg[a] = b
+        def PRN(a, b):
+            print(self.reg[a])
+        def PRA(a, b):
+            print(chr(self.reg[a]), end="")
+        def PUSH(a, b):
             self.reg[SP] -= 1
-            self.ram[self.reg[SP]] = self.reg[index]
-        def POP(index, b):
-            self.reg[index] = self.ram[self.reg[SP]]
+            self.ram[self.reg[SP]] = self.reg[a]
+        def POP(a, b):
+            self.reg[a] = self.ram[self.reg[SP]]
             self.reg[SP] += 1
-        def CALL(index, b):
+        def CALL(a, b):
             self.reg[SP] -= 1
             self.ram[self.reg[SP]] = self.pc + 2
-            self.pc = self.reg[index]
+            JMP(a, b)
         def RET(a, b):
             self.pc = self.ram[self.reg[SP]]
             self.reg[SP] += 1
-        def ST(a, b): self.ram[self.reg[a]] = self.reg[b]
+        def ST(a, b):
+            self.ram[self.reg[a]] = self.reg[b]
+        def JMP(a, b):
+            self.pc = self.reg[a]
+        def JEQ(a, b):
+            if (self.fl & 1): JMP(a, b)
+            else: self.pc += 2
+        def JNE(a, b):
+            if (self.fl & 1) ^ 1: JMP(a, b)
+            else: self.pc += 2
+        def JLE(a, b):
+            if (self.fl & 0b101): JMP(a, b)
+            else: self.pc += 2
 
         self.ops = {
             0b00000000: 'NOP',
             0b00000001: 'HLT',
             0b10000010: LDI,
             0b01000111: PRN,
+            0b01001000: PRA,
             0b01000101: PUSH,
             0b01000110: POP,
             0b01010000: CALL,
             0b00010001: RET,
-            0b10000100: ST
+            0b10000100: ST,
+            0b01010100: JMP,
+            0b01010101: JEQ,
+            0b01010110: JNE,
+            0b01011001: JLE
         }
     
     def ram_read(self, mar):
@@ -67,12 +89,24 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        def ADD(a, b): self.reg[a] += self.reg[b]
-        def MUL(a, b): self.reg[a] *= self.reg[b]
+        def ADD(a, b):
+            self.reg[a] += self.reg[b]
+        def INC(a, b):
+            self.reg[a] += 1
+        def MUL(a, b):
+            self.reg[a] *= self.reg[b]
+        def CMP(a, b):
+            val_a = self.reg[a]
+            val_b = self.reg[b]
+            if val_a < val_b: self.fl = 0b100
+            elif val_a > val_b: self.fl = 0b10
+            else: self.fl = 1
 
         alu_opcodes = {
             0b10100000: ADD,
-            0b10100010: MUL
+            0b01100101: INC,
+            0b10100010: MUL,
+            0b10100111: CMP
         }
 
         if op in alu_opcodes:
@@ -110,8 +144,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        time = now()
-        print(time)
         while (op_fn := self.opcodes(ir := self.ram[self.pc])) != 'HLT':
             num_args = ir >> 6 # Grab 7th/8th bits
             operand_a = self.ram[self.pc + 1] if num_args > 0 else None
