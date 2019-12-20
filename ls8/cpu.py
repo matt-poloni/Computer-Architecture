@@ -107,6 +107,7 @@ class CPU:
         alu_opcodes = {
             0b10100000: ADD,
             0b01100101: INC,
+            0b01100110: DEC,
             0b10100010: MUL,
             0b10100111: CMP
         }
