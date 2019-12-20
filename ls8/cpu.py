@@ -94,6 +94,8 @@ class CPU:
         """ALU operations."""
         def ADD(a, b):
             self.reg[a] += self.reg[b]
+        def ADDI(a, b):
+            self.reg[a] += b
         def INC(a, b):
             self.reg[a] += 1
         def DEC(a, b):
@@ -124,6 +126,7 @@ class CPU:
 
         alu_opcodes = {
             0b10100000: ADD,
+            0b10101110: ADDI,
             0b01100101: INC,
             0b01100110: DEC,
             0b10100010: MUL,
