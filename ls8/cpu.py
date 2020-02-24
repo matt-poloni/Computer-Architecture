@@ -94,6 +94,8 @@ class CPU:
         """ALU operations."""
         def ADD(a, b):
             self.reg[a] += self.reg[b]
+        def ADDI(a, b):
+            self.reg[a] += b
         def INC(a, b):
             self.reg[a] += 1
         def DEC(a, b):
@@ -106,13 +108,36 @@ class CPU:
             if val_a < val_b: self.fl = 0b100
             elif val_a > val_b: self.fl = 0b10
             else: self.fl = 1
+        def AND(a, b):
+            self.reg[a] &= self.reg[b]
+        def OR(a, b):
+            self.reg[a] |= self.reg[b]
+        def XOR(a, b):
+            self.reg[a] ^= self.reg[b]
+        def NOT(a, b):
+            self.reg[a] = ~self.reg[a]
+        def SHL(a, b):
+            self.reg[a] <<= self.reg[b]
+        def SHR(a, b):
+            self.reg[a] >>= self.reg[b]
+        def MOD(a, b):
+            if b == 0: raise Exception("Cannot divide by 0")
+            self.reg[a] %= self.reg[b]
 
         alu_opcodes = {
             0b10100000: ADD,
+            0b10101110: ADDI,
             0b01100101: INC,
             0b01100110: DEC,
             0b10100010: MUL,
-            0b10100111: CMP
+            0b10100111: CMP,
+            0b10101000: AND,
+            0b10101010: OR,
+            0b10101011: XOR,
+            0b01101001: NOT,
+            0b10101100: SHL,
+            0b10101101: SHR,
+            0b10100100: MOD
         }
 
         if op in alu_opcodes:
